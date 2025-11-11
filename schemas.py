@@ -12,9 +12,7 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
-
-# Example schemas (replace with your own):
+from typing import Optional, List
 
 class User(BaseModel):
     """
@@ -23,26 +21,39 @@ class User(BaseModel):
     """
     name: str = Field(..., description="Full name")
     email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
+    address: Optional[str] = Field(None, description="Address")
+    phone: Optional[str] = Field(None, description="Phone number")
     is_active: bool = Field(True, description="Whether user is active")
 
 class Product(BaseModel):
     """
-    Products collection schema
+    Products collection schema for food & beverage UMKM
     Collection name: "product" (lowercase of class name)
     """
-    title: str = Field(..., description="Product title")
+    name: str = Field(..., description="Product name")
     description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
+    price: float = Field(..., ge=0, description="Price in local currency")
+    category: str = Field(..., description="Product category (e.g., Drinks, Snacks)")
+    image: Optional[str] = Field(None, description="Image URL")
+    vendor: Optional[str] = Field(None, description="UMKM vendor/brand name")
+    rating: Optional[float] = Field(4.5, ge=0, le=5, description="Average rating")
+    tags: Optional[List[str]] = Field(default_factory=list, description="Tags for filtering")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+class OrderItem(BaseModel):
+    product_id: str = Field(..., description="Referenced product id as string")
+    name: str = Field(..., description="Snapshot of product name")
+    price: float = Field(..., ge=0, description="Snapshot of product price")
+    quantity: int = Field(..., ge=1, description="Quantity ordered")
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Order(BaseModel):
+    """
+    Orders collection schema
+    Collection name: "order"
+    """
+    customer_name: Optional[str] = Field(None, description="Customer name")
+    customer_phone: Optional[str] = Field(None, description="Customer phone")
+    customer_address: Optional[str] = Field(None, description="Delivery address")
+    items: List[OrderItem] = Field(..., description="Line items")
+    subtotal: float = Field(..., ge=0, description="Subtotal amount")
+    notes: Optional[str] = Field(None, description="Additional notes")
